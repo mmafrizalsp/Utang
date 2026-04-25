@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ular Tangga Seru</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+<style>
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 { color: white; }
+
+#board {
+    display: grid;
+    grid-template-columns: repeat(10, 45px);
+    grid-template-rows: repeat(10, 45px);
+    gap: 3px;
+    margin: 20px auto;
+}
+
+.cell {
+    width: 45px;
+    height: 45px;
+    background: white;
+    font-size: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    border-radius: 6px;
+}
+
+.player {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    position: absolute;
+}
+
+.p1 { background: red; bottom: 2px; left: 2px; }
+.p2 { background: blue; bottom: 2px; right: 2px; }
+.p3 { background: green; top: 2px; left: 2px; }
+.p4 { background: purple; top: 2px; right: 2px; }
+
+button {
+    padding: 12px 24px;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    background: #ff9800;
+    color: white;
+    cursor: pointer;
+}
+
+#info {
+    color: white;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+#diceView {
+    font-size: 24px;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎲 Ular Tangga</h1>
+
+<h2 id="diceView">🎲</h2>
+
+<div id="board"></div>
+
+<button onclick="rollDice()">Roll Dadu</button>
+<div id="info">Giliran Player 1</div>
+
+<audio id="diceSound" src="https://www.soundjay.com/misc/sounds/dice-roll-1.mp3"></audio>
+
+<script>
+const board = document.getElementById("board");
+
+let players = [
+    { position: 1 },
+    { position: 1 }
+];
+
+let currentPlayer = 0;
+
+const snakes = {
+    99: 54,
+    70: 55,
+    52: 42,
+    25: 2
+};
+
+const ladders = {
+    6: 25,
+    11: 40,
+    60: 85,
+    46: 90
+};
+
+let cells = [];
+
+for (let row = 10; row >= 1; row--) {
+    let start = (row - 1) * 10 + 1;
+    let end = row * 10;
+
+    let numbers = [];
+    for (let i = start; i <= end; i++) numbers.push(i);
+
+    if (row % 2 === 0) numbers.reverse();
+
+    numbers.forEach(num => {
+        const div = document.createElement("div");
+        div.classList.add("cell");
+        div.id = "cell-" + num;
+        div.innerText = num;
+        board.appendChild(div);
+        cells[num] = div;
+    });
+}
+
+function renderPlayers() {
+    document.querySelectorAll(".player").forEach(p => p.remove());
+
+    players.forEach((p, i) => {
+        const marker = document.createElement("div");
+        marker.classList.add("player", "p" + (i + 1));
+        cells[p.position].appendChild(marker);
+    });
+}
+
+async function movePlayer(player, steps) {
+    for (let i = 0; i < steps; i++) {
+        player.position++;
+        renderPlayers();
+        await new Promise(r => setTimeout(r, 250));
+    }
+}
+
+async function rollDice() {
+    const dice = Math.floor(Math.random() * 6) + 1;
+
+    document.getElementById("diceSound").play();
+    document.getElementById("diceView").innerText = "🎲 " + dice;
+
+    let player = players[currentPlayer];
+
+    if (player.position + dice <= 100) {
+        await movePlayer(player, dice);
+    }
+
+    if (ladders[player.position]) {
+        player.position = ladders[player.position];
+    }
+
+    if (snakes[player.position]) {
+        player.position = snakes[player.position];
+    }
+
+    if (Math.random() < 0.2) {
+        alert("🤣 Kena prank! Mundur 3 langkah");
+        player.position = Math.max(1, player.position - 3);
+    }
+
+    renderPlayers();
+
+    if (player.position === 100) {
+        document.getElementById("info").innerText =
+            `🎉 Player ${currentPlayer + 1} Menang!`;
+        return;
+    }
+
+    currentPlayer = (currentPlayer + 1) % players.length;
+
+    document.getElementById("info").innerText =
+        `Giliran Player ${currentPlayer + 1}`;
+}
+
+renderPlayers();
+</script>
+
+</body>
+</html>
