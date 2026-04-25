@@ -16,26 +16,25 @@ body {
     padding: 10px;
 }
 
-h1 { color: white; margin-bottom: 5px; }
+h1 { color: white; }
 
 #board {
     display: grid;
     grid-template-columns: repeat(10, 1fr);
     gap: 5px;
-    width: 100%;
     max-width: 500px;
-    margin: 10px auto;
+    margin: auto;
 }
 
 .cell {
     aspect-ratio: 1/1;
     background: white;
+    border-radius: 8px;
     font-size: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
-    border-radius: 8px;
 }
 
 .player {
@@ -48,26 +47,24 @@ h1 { color: white; margin-bottom: 5px; }
 .p1 { background: red; bottom: 2px; left: 2px; }
 .p2 { background: blue; bottom: 2px; right: 2px; }
 
+/* VISUAL */
+.snake { background: #ef5350 !important; color: white; }
+.ladder { background: #66bb6a !important; color: white; }
+.task { background: #ffe082 !important; }
+
 button {
-    padding: 14px 28px;
-    font-size: 16px;
-    border: none;
-    border-radius: 12px;
-    background: #ff9800;
-    color: white;
-    cursor: pointer;
+    padding: 12px 24px;
     margin-top: 10px;
+    border: none;
+    border-radius: 10px;
+    background: orange;
+    color: white;
+    font-size: 16px;
 }
 
-#info {
+#info, #diceView {
     color: white;
     font-weight: bold;
-    margin-top: 10px;
-}
-
-#diceView {
-    font-size: 24px;
-    color: white;
 }
 </style>
 </head>
@@ -75,7 +72,7 @@ button {
 <body>
 
 <h1>🎲 Ular Tangga</h1>
-<h2 id="diceView">🎲</h2>
+<div id="diceView">🎲</div>
 
 <div id="board"></div>
 
@@ -94,6 +91,7 @@ let players = [
 
 let currentPlayer = 0;
 
+// 🐍 ULAR
 const snakes = {
     99: 54,
     70: 55,
@@ -101,6 +99,7 @@ const snakes = {
     25: 2
 };
 
+// 🪜 TANGGA
 const ladders = {
     6: 25,
     11: 40,
@@ -108,21 +107,21 @@ const ladders = {
     46: 90
 };
 
-// 🎯 TASK / HUKUMAN
+// 🎯 TASK
 const tasks = {
-    5: "😆 Nyanyi 1 lagu!",
-    13: "🤸 Lompat 5x!",
-    22: "🤣 Cerita joke!",
-    37: "💪 Push up 5x!",
-    48: "🎤 Tirukan suara hewan!",
-    66: "🥶 Tahan napas 10 detik!",
-    79: "😂 Ketawa tanpa suara 10 detik!",
-    88: "🎭 Acting sedih!"
+    5: "Nyanyi lagu bebas!",
+    13: "Lompat 5x!",
+    22: "Ceritakan joke!",
+    37: "Push up 5x!",
+    48: "Tirukan hewan!",
+    66: "Tahan napas 10 detik!",
+    79: "Ketawa tanpa suara!",
+    88: "Acting sedih!"
 };
 
 let cells = [];
 
-// Generate board zig-zag
+// Generate board
 for (let row = 10; row >= 1; row--) {
     let start = (row - 1) * 10 + 1;
     let end = row * 10;
@@ -138,10 +137,10 @@ for (let row = 10; row >= 1; row--) {
         div.id = "cell-" + num;
         div.innerText = num;
 
-        // Highlight task
-        if (tasks[num]) {
-            div.style.background = "#ffe082";
-        }
+        // 🎨 Tandai
+        if (snakes[num]) div.classList.add("snake");
+        if (ladders[num]) div.classList.add("ladder");
+        if (tasks[num]) div.classList.add("task");
 
         board.appendChild(div);
         cells[num] = div;
@@ -178,19 +177,21 @@ async function rollDice() {
         await movePlayer(player, dice);
     }
 
+    // 🪜 Tangga
     if (ladders[player.position]) {
+        alert("🪜 Naik tangga!");
         player.position = ladders[player.position];
-        alert("🚀 Naik tangga!");
     }
 
+    // 🐍 Ular
     if (snakes[player.position]) {
-        player.position = snakes[player.position];
         alert("🐍 Digigit ular!");
+        player.position = snakes[player.position];
     }
 
-    // 🎯 TASK TRIGGER
+    // 🎯 Task
     if (tasks[player.position]) {
-        alert("Tantangan:\n" + tasks[player.position]);
+        alert("🎯 Tantangan:\n" + tasks[player.position]);
     }
 
     renderPlayers();
