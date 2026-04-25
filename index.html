@@ -13,51 +13,50 @@ body {
     background: linear-gradient(135deg, #4facfe, #00f2fe);
     text-align: center;
     margin: 0;
-    padding: 20px;
+    padding: 10px;
 }
 
-h1 { color: white; }
+h1 { color: white; margin-bottom: 5px; }
 
 #board {
     display: grid;
-    grid-template-columns: repeat(10, 45px);
-    grid-template-rows: repeat(10, 45px);
-    gap: 3px;
-    margin: 20px auto;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 5px;
+    width: 100%;
+    max-width: 500px;
+    margin: 10px auto;
 }
 
 .cell {
-    width: 45px;
-    height: 45px;
+    aspect-ratio: 1/1;
     background: white;
-    font-size: 10px;
+    font-size: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
-    border-radius: 6px;
+    border-radius: 8px;
 }
 
 .player {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     position: absolute;
 }
 
 .p1 { background: red; bottom: 2px; left: 2px; }
 .p2 { background: blue; bottom: 2px; right: 2px; }
-.p3 { background: green; top: 2px; left: 2px; }
-.p4 { background: purple; top: 2px; right: 2px; }
 
 button {
-    padding: 12px 24px;
+    padding: 14px 28px;
     font-size: 16px;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     background: #ff9800;
     color: white;
     cursor: pointer;
+    margin-top: 10px;
 }
 
 #info {
@@ -76,7 +75,6 @@ button {
 <body>
 
 <h1>🎲 Ular Tangga</h1>
-
 <h2 id="diceView">🎲</h2>
 
 <div id="board"></div>
@@ -110,8 +108,21 @@ const ladders = {
     46: 90
 };
 
+// 🎯 TASK / HUKUMAN
+const tasks = {
+    5: "😆 Nyanyi 1 lagu!",
+    13: "🤸 Lompat 5x!",
+    22: "🤣 Cerita joke!",
+    37: "💪 Push up 5x!",
+    48: "🎤 Tirukan suara hewan!",
+    66: "🥶 Tahan napas 10 detik!",
+    79: "😂 Ketawa tanpa suara 10 detik!",
+    88: "🎭 Acting sedih!"
+};
+
 let cells = [];
 
+// Generate board zig-zag
 for (let row = 10; row >= 1; row--) {
     let start = (row - 1) * 10 + 1;
     let end = row * 10;
@@ -126,6 +137,12 @@ for (let row = 10; row >= 1; row--) {
         div.classList.add("cell");
         div.id = "cell-" + num;
         div.innerText = num;
+
+        // Highlight task
+        if (tasks[num]) {
+            div.style.background = "#ffe082";
+        }
+
         board.appendChild(div);
         cells[num] = div;
     });
@@ -145,7 +162,7 @@ async function movePlayer(player, steps) {
     for (let i = 0; i < steps; i++) {
         player.position++;
         renderPlayers();
-        await new Promise(r => setTimeout(r, 250));
+        await new Promise(r => setTimeout(r, 200));
     }
 }
 
@@ -163,15 +180,17 @@ async function rollDice() {
 
     if (ladders[player.position]) {
         player.position = ladders[player.position];
+        alert("🚀 Naik tangga!");
     }
 
     if (snakes[player.position]) {
         player.position = snakes[player.position];
+        alert("🐍 Digigit ular!");
     }
 
-    if (Math.random() < 0.2) {
-        alert("🤣 Kena prank! Mundur 3 langkah");
-        player.position = Math.max(1, player.position - 3);
+    // 🎯 TASK TRIGGER
+    if (tasks[player.position]) {
+        alert("Tantangan:\n" + tasks[player.position]);
     }
 
     renderPlayers();
