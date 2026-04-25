@@ -178,16 +178,15 @@ async function rollDice() {
     }
 
     // 🪜 Tangga
-    if (ladders[player.position]) {
-        alert("🪜 Naik tangga!");
-        player.position = ladders[player.position];
-    }
+    // PRIORITAS: hanya 1 event
+if (ladders[player.position]) {
+    alert("🪜 Naik tangga!");
+    player.position = ladders[player.position];
 
-    // 🐍 Ular
-    if (snakes[player.position]) {
-        alert("🐍 Digigit ular!");
-        player.position = snakes[player.position];
-    }
+} else if (snakes[player.position]) {
+    alert("🐍 Digigit ular!");
+    player.position = snakes[player.position];
+}
 
     // 🎯 Task
     if (tasks[player.position]) {
