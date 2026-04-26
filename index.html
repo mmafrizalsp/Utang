@@ -16,8 +16,6 @@ body {
     padding: 10px;
 }
 
-h1 { color: white; }
-
 #board {
     display: grid;
     grid-template-columns: repeat(10, 1fr);
@@ -37,20 +35,17 @@ h1 { color: white; }
     position: relative;
 }
 
-.player {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
+/* PLAYER IMAGE */
+.player img {
+    width: 20px;
     position: absolute;
+    bottom: 2px;
 }
 
-.p1 { background: red; bottom: 2px; left: 2px; }
-.p2 { background: blue; bottom: 2px; right: 2px; }
-
-/* VISUAL */
-.snake { background: #ef5350 !important; color: white; }
-.ladder { background: #66bb6a !important; color: white; }
-.task { background: #ffe082 !important; }
+/* COLORS */
+.snake { background: #ef5350; color: white; }
+.ladder { background: #66bb6a; color: white; }
+.task { background: #ffe082; }
 
 button {
     padding: 12px 24px;
@@ -62,82 +57,105 @@ button {
     font-size: 16px;
 }
 
-#info, #diceView {
-    color: white;
-    font-weight: bold;
+/* MODAL */
+.modal {
+    position: fixed;
+    top:0; left:0;
+    width:100%;
+    height:100%;
+    background: rgba(0,0,0,0.6);
+    display:none;
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content {
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    text-align:center;
+    max-width:300px;
+}
+
+.modal-content img {
+    width:100px;
+    margin-bottom:10px;
+}
+
+.close-btn {
+    margin-top:10px;
+    padding:8px 16px;
+    border:none;
+    background:#4caf50;
+    color:white;
+    border-radius:8px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🎲 Ular Tangga</h1>
-<div id="diceView">🎲</div>
-
+<h2 id="diceView">🎲</h2>
 <div id="board"></div>
-
 <button onclick="rollDice()">Roll Dadu</button>
 <div id="info">Giliran Player 1</div>
 
-<audio id="diceSound" src="https://www.soundjay.com/misc/sounds/dice-roll-1.mp3"></audio>
+<!-- MODAL -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <img id="modalImg">
+    <h3 id="modalTitle"></h3>
+    <button class="close-btn" onclick="closeModal()">OK</button>
+  </div>
+</div>
 
 <script>
 const board = document.getElementById("board");
 
 let players = [
-    { position: 1 },
-    { position: 1 }
+    { position: 1, img: "assets/player1.png" },
+    { position: 1, img: "assets/player2.png" }
 ];
 
 let currentPlayer = 0;
 
-// 🐍 ULAR
-const snakes = {
-    99: 54,
-    70: 55,
-    52: 42,
-    25: 2
-};
+const snakes = { 99:54, 70:55, 52:42, 25:2 };
+const ladders = { 6:25, 11:40, 60:85, 46:90 };
 
-// 🪜 TANGGA
-const ladders = {
-    6: 25,
-    11: 40,
-    60: 85,
-    46: 90
-};
-
-// 🎯 TASK
 const tasks = {
-    5: "Nyanyi lagu bebas!",
+    5: "Nyanyi lagu!",
     13: "Lompat 5x!",
-    22: "Ceritakan joke!",
-    37: "Push up 5x!",
-    48: "Tirukan hewan!",
-    66: "Tahan napas 10 detik!",
-    79: "Ketawa tanpa suara!",
-    88: "Acting sedih!"
+    22: "Joke lucu!",
+    37: "Push up!",
 };
 
 let cells = [];
 
-// Generate board
+// MODAL
+function showModal(img, text) {
+    document.getElementById("modal").style.display = "flex";
+    document.getElementById("modalImg").src = img;
+    document.getElementById("modalTitle").innerText = text;
+}
+
+function closeModal() {
+    document.getElementById("modal").style.display = "none";
+}
+
+// BOARD
 for (let row = 10; row >= 1; row--) {
     let start = (row - 1) * 10 + 1;
     let end = row * 10;
 
-    let numbers = [];
-    for (let i = start; i <= end; i++) numbers.push(i);
+    let nums = [];
+    for (let i = start; i <= end; i++) nums.push(i);
+    if (row % 2 === 0) nums.reverse();
 
-    if (row % 2 === 0) numbers.reverse();
-
-    numbers.forEach(num => {
+    nums.forEach(num => {
         const div = document.createElement("div");
-        div.classList.add("cell");
-        div.id = "cell-" + num;
+        div.className = "cell";
         div.innerText = num;
 
-        // 🎨 Tandai
         if (snakes[num]) div.classList.add("snake");
         if (ladders[num]) div.classList.add("ladder");
         if (tasks[num]) div.classList.add("task");
@@ -147,16 +165,23 @@ for (let row = 10; row >= 1; row--) {
     });
 }
 
+// RENDER PLAYER
 function renderPlayers() {
-    document.querySelectorAll(".player").forEach(p => p.remove());
+    document.querySelectorAll(".player").forEach(e => e.remove());
 
-    players.forEach((p, i) => {
-        const marker = document.createElement("div");
-        marker.classList.add("player", "p" + (i + 1));
-        cells[p.position].appendChild(marker);
+    players.forEach(p => {
+        const el = document.createElement("div");
+        el.className = "player";
+
+        const img = document.createElement("img");
+        img.src = p.img;
+
+        el.appendChild(img);
+        cells[p.position].appendChild(el);
     });
 }
 
+// MOVE
 async function movePlayer(player, steps) {
     for (let i = 0; i < steps; i++) {
         player.position++;
@@ -165,10 +190,9 @@ async function movePlayer(player, steps) {
     }
 }
 
+// MAIN
 async function rollDice() {
     const dice = Math.floor(Math.random() * 6) + 1;
-
-    document.getElementById("diceSound").play();
     document.getElementById("diceView").innerText = "🎲 " + dice;
 
     let player = players[currentPlayer];
@@ -177,34 +201,29 @@ async function rollDice() {
         await movePlayer(player, dice);
     }
 
-    // 🪜 Tangga
-    // PRIORITAS: hanya 1 event
-if (ladders[player.position]) {
-    alert("🪜 Naik tangga!");
-    player.position = ladders[player.position];
+    // PRIORITAS EVENT
+    if (ladders[player.position]) {
+        player.position = ladders[player.position];
+        showModal("assets/ladder.png", "Naik Tangga!");
 
-} else if (snakes[player.position]) {
-    alert("🐍 Digigit ular!");
-    player.position = snakes[player.position];
-}
+    } else if (snakes[player.position]) {
+        player.position = snakes[player.position];
+        showModal("assets/snake.png", "Digigit Ular!");
 
-    // 🎯 Task
-    if (tasks[player.position]) {
-        alert("🎯 Tantangan:\n" + tasks[player.position]);
+    } else if (tasks[player.position]) {
+        showModal("assets/task.png", tasks[player.position]);
     }
 
     renderPlayers();
 
     if (player.position === 100) {
-        document.getElementById("info").innerText =
-            `🎉 Player ${currentPlayer + 1} Menang!`;
+        showModal("assets/task.png", "Player " + (currentPlayer+1) + " Menang!");
         return;
     }
 
     currentPlayer = (currentPlayer + 1) % players.length;
-
     document.getElementById("info").innerText =
-        `Giliran Player ${currentPlayer + 1}`;
+        "Giliran Player " + (currentPlayer + 1);
 }
 
 renderPlayers();
